@@ -1,0 +1,121 @@
+interface InventoryProduct {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
+let products: InventoryProduct[] = [
+    { id: 1, name: "Laptop", price: 45000, quantity: 5 },
+    { id: 2, name: "Mobile", price: 15000, quantity: 10 },
+    { id: 3, name: "Headphones", price: 2000, quantity: 8 }
+];
+
+let nextId = 4;
+
+const productForm = document.getElementById("productForm") as HTMLFormElement;
+const productNameInput = document.getElementById("productName") as HTMLInputElement;
+const productPriceInput = document.getElementById("productPrice") as HTMLInputElement;
+const productQuantityInput = document.getElementById("productQuantity") as HTMLInputElement;
+const productTableBody = document.getElementById("productTableBody") as HTMLTableSectionElement;
+const searchInput = document.getElementById("searchInput") as HTMLInputElement;
+const message = document.getElementById("message") as HTMLParagraphElement;
+
+function displayProducts(searchText: string = ""): void {
+    productTableBody.innerHTML = "";
+
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    filteredProducts.forEach(product => {
+        const row = document.createElement("tr");
+
+        const idCell = document.createElement("td");
+        idCell.textContent = String(product.id);
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = product.name;
+
+        const priceCell = document.createElement("td");
+        priceCell.textContent = "₹" + product.price.toFixed(2);
+
+        const quantityCell = document.createElement("td");
+        quantityCell.textContent = String(product.quantity);
+
+        const actionCell = document.createElement("td");
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "delete-button";
+        deleteButton.dataset.id = String(product.id);
+
+        actionCell.appendChild(deleteButton);
+
+        row.append(idCell, nameCell, priceCell, quantityCell, actionCell);
+        productTableBody.appendChild(row);
+    });
+
+    if (filteredProducts.length === 0) {
+        productTableBody.innerHTML =
+            '<tr><td colspan="5">No products found.</td></tr>';
+    }
+}
+
+productForm.addEventListener("submit", (event: SubmitEvent) => {
+    event.preventDefault();
+
+    const name = productNameInput.value.trim();
+    const price = Number(productPriceInput.value);
+    const quantity = Number(productQuantityInput.value);
+
+    if (
+        name === "" ||
+        productPriceInput.value === "" ||
+        productQuantityInput.value === "" ||
+        !Number.isFinite(price) ||
+        price <= 0 ||
+        !Number.isInteger(quantity) ||
+        quantity < 0
+    ) {
+        message.textContent = "Please enter valid product details.";
+        return;
+    }
+
+    products.push({
+        id: nextId,
+        name: name,
+        price: price,
+        quantity: quantity
+    });
+
+    nextId++;
+
+    searchInput.value = "";
+    displayProducts();
+
+    message.textContent = "Product added successfully!";
+    productForm.reset();
+});
+
+searchInput.addEventListener("input", () => {
+    displayProducts(searchInput.value);
+});
+
+productTableBody.addEventListener("click", (event: MouseEvent) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    const id = Number(target.dataset.id);
+    products = products.filter(product => product.id !== id);
+
+    displayProducts(searchInput.value);
+    message.textContent = "Product deleted successfully.";
+});
+
+// Display the initial products
+console.log("Inventory application started");
+console.log("Products:", products);
+displayProducts();
